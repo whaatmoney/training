@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>QPC Training Build — The Board</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23C9A34D'/%3E%3Ctext x='50' y='63' font-family='Arial,Helvetica,sans-serif' font-size='32' font-weight='bold' text-anchor='middle' fill='%231F2937'%3EQPC%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --ink:#16181d; --soft:#5c6470; --faint:#8a919c;
+    --bg:#ffffff; --panel:#f7f8fa; --line:#e6e8ec;
+    --brand:#C9A34D; --accent:#8a6a25;
+    --frozen:#6929c4; --done:#198038; --ready:#0f62fe; --amber:#b28600; --blocked:#a2191f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding-bottom:80px}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+
+  header{padding:28px 0 18px;border-bottom:1px solid var(--line);border-top:4px solid var(--brand)}
+  .brandrow{display:flex;align-items:center;gap:15px}
+  .brandrow svg{width:50px;height:50px;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.12))}
+  header h1{font-size:21px;font-weight:650;letter-spacing:-.2px}
+  header .sub{color:var(--soft);font-size:13.5px;margin-top:4px}
+
+  nav{position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:10}
+  nav .wrap{display:flex;gap:18px;overflow-x:auto;padding-top:10px;padding-bottom:10px}
+  nav a{color:var(--soft);text-decoration:none;font-size:13px;white-space:nowrap;font-weight:550}
+  nav a:hover{color:var(--accent)}
+
+  section{padding:28px 0 6px}
+  h2{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .lede{color:var(--soft);font-size:13.5px;margin-bottom:14px;max-width:720px}
+
+  .game{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px}
+  .gcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .gcard .k{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+  .gcard h3{font-size:14.5px;font-weight:650;margin:6px 0 6px}
+  .gcard p{font-size:13.5px;color:var(--soft)}
+  .rules{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px 16px 12px}
+  .rules h3{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:12px 0 4px}
+  .rules ol{margin-left:20px;color:var(--soft);font-size:13.5px}
+  .rules li{margin:7px 0}
+  .rules b{color:var(--ink);font-weight:620}
+
+  .dream{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:12px}
+  .dcard{background:#fdfaf2;border:1px solid #ecdfc0;border-radius:10px;padding:16px;position:relative}
+  .dcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand);border-radius:10px 0 0 10px}
+  .dcard h3{font-size:14.5px;font-weight:680;margin-bottom:6px}
+  .dcard p{font-size:13.5px;color:var(--soft)}
+  .dcard .live{font-size:13px;color:var(--accent);font-style:italic;margin-top:8px;display:block}
+  .connector{background:var(--panel);border:1px dashed #d8c9a0;border-radius:10px;padding:13px 16px;font-size:13.5px;color:var(--soft);text-align:center}
+  .connector b{color:var(--accent)}
+
+  .map{display:flex;gap:0;margin:8px 0 10px;overflow-x:auto;padding-bottom:6px}
+  .step{flex:1;min-width:128px;position:relative;text-align:center;padding-top:6px}
+  .step::before{content:"";position:absolute;top:17px;left:0;right:0;height:2px;background:var(--line)}
+  .step:first-child::before{left:50%}
+  .step:last-child::before{right:50%}
+  .step .node{width:22px;height:22px;border-radius:50%;margin:0 auto;position:relative;z-index:1;background:var(--bg);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--faint)}
+  .step.done .node{background:var(--done);border-color:var(--done);color:#fff}
+  .step.here .node{background:var(--brand);border-color:var(--brand);color:#1F2937;box-shadow:0 0 0 5px rgba(201,163,77,.25)}
+  .step.done::before{background:var(--done)}
+  .step b{display:block;font-size:12px;font-weight:700;margin-top:8px}
+  .step small{display:block;font-size:11px;color:var(--soft);margin-top:2px;padding:0 6px}
+  .step.here b{color:var(--accent)}
+  .youarehere{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+
+  .hero{display:flex;gap:12px;padding:14px 0 6px;flex-wrap:wrap}
+  .stat{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+  .stat b{display:block;font-size:25px;font-weight:700;letter-spacing:-.5px}
+  .stat span{font-size:12.5px;color:var(--soft)}
+  #moveCount{color:var(--accent)}
+
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row input[type=checkbox]{margin-top:3px;width:16px;height:16px;accent-color:var(--done);flex:none;cursor:pointer}
+  .row .t{flex:1}
+  .row .t b{font-weight:620;font-size:14px}
+  .row .t small{display:block;color:var(--soft);font-size:12.5px;margin-top:2px}
+  .row.checked .t b{color:var(--faint);text-decoration:line-through}
+  .row.checked .t small{color:var(--faint)}
+
+  .who{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;flex:none;margin-top:2px;background:#f1ead7;color:var(--accent);border:1px solid #e3d5ae}
+  .who.qm{background:#e9e2f5;color:var(--frozen);border-color:#d8c9ef}
+  .who.jay{background:#e2ecf9;color:#1452a3;border-color:#c9ddf5}
+
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+  .d-frozen{background:var(--frozen)} .d-done{background:var(--done)} .d-ready{background:var(--ready)} .d-amber{background:var(--amber)} .d-blocked{background:var(--blocked)}
+  .chip{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:99px;flex:none;margin-top:2px}
+  .c-frozen{background:#efe6fb;color:var(--frozen)} .c-done{background:#e4f3e8;color:var(--done)}
+  .c-ready{background:#e6eefe;color:var(--ready)} .c-amber{background:#f8f0d8;color:#8a6a00} .c-blocked{background:#fbe7e8;color:var(--blocked)}
+  .pillar{font-size:12px;font-weight:700;color:var(--faint);letter-spacing:.08em;text-transform:uppercase;padding:14px 14px 4px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--soft);margin:6px 0 14px}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+
+  details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--panel)}
+  summary{cursor:pointer;padding:12px 14px;font-weight:620;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::after{content:"+";color:var(--faint);font-size:18px}
+  details[open] summary::after{content:"–"}
+  details .inner{padding:0 14px 12px;color:var(--soft);font-size:13.5px}
+  details .inner li{margin:6px 0 6px 18px}
+
+  .gate{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--panel)}
+  .gate b{font-size:14px}
+  .gate p{color:var(--soft);font-size:13.5px;margin-top:3px}
+
+  textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;font-size:13.5px;min-height:70px;background:var(--bg);color:var(--ink);resize:vertical}
+
+  .bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--line);z-index:20}
+  .bar .wrap{display:flex;gap:10px;align-items:center;padding:10px 20px}
+  .bar button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:7px 13px;font:inherit;font-size:13px;font-weight:550;cursor:pointer}
+  .bar button:hover{border-color:var(--accent);color:var(--accent)}
+  .bar .status{margin-left:auto;font-size:12px;color:var(--faint)}
+  .bar input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <svg viewBox="0 0 100 100" role="img" aria-label="QPC">
+        <circle cx="50" cy="50" r="48" fill="#C9A34D"/>
+        <g transform="translate(8.95,7.1) scale(0.3636)" fill="#1F2937" stroke="#1F2937" stroke-width="3" stroke-linejoin="miter" stroke-miterlimit="10">
+          <polyline points="85.61 150.21 74.4 150.21 68.66 144.17 37 144.25 24.9 132.57 24.9 97.86 36.58 86.27 71.37 86.27 82.38 97.61 82.63 131.89 79.67 135.45 74.08 129.88 75.1 129.02 75.02 100.81 67.87 93.58 39.73 93.58 32.5 100.96 32.66 129.41 39.97 136.88 61.35 136.88 53.17 127.49 63.84 127.49 85.79 150.21"/>
+          <path d="M135.59,86.19h-42.48v57.86h7.51v-17.64h35.04l10.64-10.56v-18.97l-10.71-10.69ZM138.62,112.49l-5.98,6.52h-31.72v-25h31.78l5.92,5.72v12.77Z" fill-rule="evenodd"/>
+          <polygon points="200.84 86.23 200.85 93.97 167.82 93.97 160.38 101.35 160.38 129.37 167.42 136.64 200.76 136.64 200.9 144.01 165.03 144.01 152.88 132.82 152.88 97.98 164.76 86.23 200.84 86.23"/>
+        </g>
+      </svg>
+      <div>
+        <h1>QPC Training Build — The Board</h1>
+        <div class="sub">One page that holds the whole game: why we're building, what done looks like, where we are, and whose move it is. Updated June 12, 2026 · working tool, not an official quality document</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <a href="#game">The Game</a><a href="#dream">The Dream</a><a href="#map">The Map</a><a href="#moves">Open Moves</a><a href="#board">Module Board</a><a href="#gates">The Two Gates</a><a href="#closed">Closed</a><a href="#findings">Findings-in-Waiting</a><a href="#notes">Notes</a>
+</div></nav>
+
+<div class="wrap">
+
+  <!-- ===================== THE GAME ===================== -->
+  <section id="game">
+    <h2>The Game</h2>
+    <div class="lede">New here? This section is the whole story in ninety seconds. Everything below it is just the current state of play.</div>
+    <div class="game">
+      <div class="gcard"><div class="k">Why — the stakes</div><h3>Right now, how QPC does its work lives in people's heads.</h3><p>Heads get promoted, retire, and leave. Every departure deletes knowledge; every new hire learns by rumor. A second shift can't launch on word-of-mouth, audits get harder every cycle, and the aerospace standard we certify to literally requires capturing this knowledge before it walks out the door. And the timing matters: demand for what QPC does is surging while qualified suppliers stay scarce — the companies that can <i>prove</i> how they work are the ones that get to grow into it.</p></div>
+      <div class="gcard"><div class="k">What — the build</div><h3>A qualification system, not a binder of handouts.</h3><p>About 35 short courses ("modules") covering every job in the building. Each one works in three beats: <b>KNOW</b> the rules and why they exist, <b>DO</b> the work in front of a qualified evaluator, <b>PROVE</b> it with a test and a signed, recorded checkout. People climb a ladder — trainee → working under supervision → trusted to work independently → qualified to evaluate others. And nobody, at any level, ever signs off their own work.</p></div>
+      <div class="gcard"><div class="k">So what — the win condition</div><h3>Version 1.0 ships when five things are true.</h3><p>Every position in the company has a training path. Every fact in the training traces to an official document or an owner's recorded decision. Quality has approved the passing scores and the instant-fail lists. One module has been walked through the official paperwork pipeline as a successful test run. And every shift has enough qualified evaluators to actually run it. That's the whole game — everything on this board serves one of those five.</p></div>
+    </div>
+    <div class="rules">
+      <h3>Rules of play — how this build stays honest</h3>
+      <ol>
+        <li><b>The written plan outranks memory.</b> Meetings, hallway answers, and recollections are input. When they disagree with a written, controlled document, the document wins until the build owner resolves the conflict.</li>
+        <li><b>Facts have grades.</b> Official documents can be taught as fact. Things people said in meetings wait until they're confirmed. Open questions get written down as questions — never dressed up as answers.</li>
+        <li><b>Training level, job title, and pay are three separate things.</b> This program owns only the first one. Finishing a module never silently changes anyone's title or paycheck.</li>
+        <li><b>Nobody verifies their own work.</b> Every checkout is observed and signed by a qualified, independent evaluator. That's stricter than the industry requires — on purpose.</li>
+        <li><b>An honest gap beats a polished guess.</b> Drafts go out with their open questions flagged in plain sight, every time.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== THE DREAM ===================== -->
+  <section id="dream">
+    <h2>The Dream — what's on the other side of done</h2>
+    <div class="lede">Everything below this section is weeds and weed-cutting. This section is the cleared field. Six doors, all locked today, all opened by the same key — and none of them is hype: each one traces to a real constraint this build has already touched.</div>
+    <div class="dream">
+      <div class="dcard"><h3>A company that survives its people leaving</h3><p>Today, when someone walks out, their knowledge walks out with them. With v1.0, the knowledge stays: a new hire starts Monday with a defined path, a qualified verifier, and a record of every step — productive in weeks instead of "a year of shadowing whoever has time."</p><span class="live">How we live: vacations get taken. Promotions don't create craters. Nobody is irreplaceable in the dangerous way.</span></div>
+      <div class="dcard"><h3>The second shift</h3><p>It's gated on training readiness right now — that's not a metaphor, it's the actual blocker. The qualification system is the literal key: defined paths, enough verifiers on every shift, a night crew that runs on the same standard as days instead of a rumor of it.</p><span class="live">How we live: capacity roughly doubles inside the same four walls — without the chaos doubling with it.</span></div>
+      <div class="dcard"><h3>Expansion becomes deployment</h3><p>Washougal proved QPC grows. Today, opening a site means exporting your best people and praying. With a portable curriculum, the operation becomes a turnkey playbook — site #3 is a deployment: ship the system, qualify the people, run the checkouts.</p><span class="live">How we live: grow where the customers are, without permanently losing the people who built this place.</span></div>
+      <div class="dcard"><h3>Audits flip from threat to showcase</h3><p>The next audit will look at exactly what this build owns — training, competence, records. With v1.0, QPC is the small shop that walks the auditor through a qualification ladder with signed proof behind every name. Same story in customer audits — the rooms where SpaceX, ULA, and Boeing approvals get won.</p><span class="live">How we live: audit week stops being scramble week. Training records become a sales asset.</span></div>
+      <div class="dcard"><h3>A ladder people can see</h3><p>Every tech gets a visible path — trainee to evaluator, earned through demonstrated work, recorded and provable. "How do I move up?" gets an answer that isn't politics, isn't favoritism, isn't waiting for someone to notice you.</p><span class="live">How we live: hiring gets easier to pitch, good people get easier to keep, and skill finally has a receipt.</span></div>
+      <div class="dcard"><h3>A business worth more than its busiest week</h3><p>QPC sits in a rare position: demand from reshoring, space and defense, and AI-infrastructure buildouts is surging — while certified suppliers stay scarce, because the approvals QPC already holds take years to earn. A company in that position that <i>also</i> runs on documented systems instead of specific heroic people can be valued, scaled, financed, or grown into every bit of that demand. Documentation maturity is enterprise value, and this curriculum is one of its load-bearing walls.</p><span class="live">How we live: QPC becomes an asset that compounds — not a job that depends on who showed up.</span></div>
+    </div>
+    <div class="connector"><b>The connection, in one breath:</b> every checkbox on this board feeds a stage on the map · the map ends at v1.0 · v1.0 is the single key that opens all six doors. Cut the weeds, get the field.</div>
+  </section>
+
+  <!-- ===================== THE MAP ===================== -->
+  <section id="map">
+    <h2>The Map</h2>
+    <div class="lede">Six stages from idea to shipped system. Green is behind us. Gold is where we stand. The path doesn't branch — it just needs each stage fed.</div>
+    <div class="map">
+      <div class="step done"><div class="node">✓</div><b>The blueprint</b><small>How training works here is designed and locked: the three-beat modules, the ladder, the no-self-signoff rule</small></div>
+      <div class="step here"><div class="node">2</div><span class="youarehere">You are here</span><b>Courses written</b><small>9 modules written · 2 locked and ready for review · the all-employee basics are complete</small></div>
+      <div class="step"><div class="node">3</div><b>Quality sign-off</b><small>One sitting with the Quality Manager approves passing scores, instant-fail lists, and settles the document questions</small></div>
+      <div class="step"><div class="node">4</div><b>Missing knowledge captured</b><small>The lab interview happens · remaining floor questions get answered · every position confirmed covered</small></div>
+      <div class="step"><div class="node">5</div><b>The two gates</b><small>One module test-run through the official pipeline · enough evaluators confirmed on every shift</small></div>
+      <div class="step"><div class="node">6</div><b>v1.0 ships</b><small>The baseline releases to the floor · the best of it becomes official quality documentation</small></div>
+    </div>
+    <div class="hero">
+      <div class="stat"><b>9</b><span>modules written</span></div>
+      <div class="stat"><b>2</b><span>locked & ready for review</span></div>
+      <div class="stat"><b>8</b><span>quality questions settled</span></div>
+      <div class="stat"><b id="moveCount">–</b><span>open moves on the board</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== OPEN MOVES ===================== -->
+  <section id="moves">
+    <h2>Open Moves</h2>
+    <div class="lede"><b>This is the section with a job.</b> Everything still open needs a person, and each move names its player. Check a move when it lands — the build absorbs each answer the day it arrives. Order = what each move unblocks.</div>
+    <div class="card" id="moveList">
+      <div class="row" data-k="m1"><input type="checkbox"><div class="t"><b>Book the lab interview</b><small>One sit-down with the person who carries the lab's know-how in their head. The interview guide is written and ready. This single session unblocks two lab courses and the second-shift checklist — the biggest unlock on the board.</small></div><span class="who">Build Owner</span></div>
+      <div class="row" data-k="m2"><input type="checkbox"><div class="t"><b>Hold the Quality Manager sign-off meeting</b><small>One sitting to approve the passing scores and instant-fail lists, and to settle the stack of document questions only Quality can answer. The agenda is already written.</small></div><span class="who qm">QM + Owner</span></div>
+      <div class="row" data-k="m3"><input type="checkbox"><div class="t"><b>Post two small notices</b><small>One officially retires an old QR code people might still scan; one marks an outdated 2024 how-to guide as replaced. Five minutes each — and they're the only things holding back the finished communication course.</small></div><span class="who">Build Owner</span></div>
+      <div class="row" data-k="m4"><input type="checkbox"><div class="t"><b>Request the official org chart</b><small>It exists — the auditor reviewed it in September (form QF 53-02). With it, we can prove on paper that every position in the company has a training path.</small></div><span class="who">Build Owner</span></div>
+      <div class="row" data-k="m5"><input type="checkbox"><div class="t"><b>Re-save the Quality Manual as a normal file</b><small>The official copy is stored in a locked file format our verification tools can't open. One save-as fixes it and lets us double-check the training against the company's own rulebook.</small></div><span class="who">Build Owner</span></div>
+      <div class="row" data-k="m6"><input type="checkbox"><div class="t"><b>Pull Boeing's updated spec & check on the capping promise</b><small>Boeing updated a key requirement document and we don't have the new version yet. Separately, a procedure we promised a customer has gone quiet for a month — worth confirming it isn't slipping.</small></div><span class="who">Build Owner</span></div>
+      <div class="row" data-k="m7"><input type="checkbox"><div class="t"><b>Decide what the spec-and-material chart becomes</b><small>One chart that answers "this part, this requirement — what exactly do we do to it?" the way the big aerospace primes do it. We found the in-house template to copy; it just needs a decision on its official form.</small></div><span class="who jay">Jay + Owner</span></div>
+      <div class="row" data-k="m8"><input type="checkbox"><div class="t"><b>Put the Second-Shift Readiness Checklist in front of Jay</b><small>One page, five concrete conditions that must be true before a night shift can safely run. Pairs with the strongest line the build has: this program is what the standard requires and what the next audit will look at.</small></div><span class="who jay">Jay</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE BOARD ===================== -->
+  <section id="board">
+    <h2>Module Board</h2>
+    <div class="lede"><b>Every course, what it teaches, and where it stands — in plain words.</b> Purple is finished and locked. Green is written and stable. Blue can start the moment its input lands. Amber waits on a person. Red is stuck. Every amber and red row says exactly what it's waiting for — no mystery.</div>
+    <div class="legend">
+      <span><i style="background:var(--frozen)"></i>Locked</span>
+      <span><i style="background:var(--done)"></i>Written</span>
+      <span><i style="background:var(--ready)"></i>Ready to write</span>
+      <span><i style="background:var(--amber)"></i>Waiting on a person</span>
+      <span><i style="background:var(--blocked)"></i>Stuck</span>
+    </div>
+
+    <div class="card">
+      <div class="pillar">The basics — every employee takes these</div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>CORE-M1 · Day One: Who We Are & Why Clean Matters</b><small>Teaches: what QPC does, why a speck of contamination can ruin a flight part, and the promises behind our certifications. <i>Status: written and stable — and last September's auditor independently confirmed employees can speak to this material.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>CORE-M2 · The Paperwork That Travels With Every Job</b><small>Teaches: how to read the job traveler, why no work ever happens without paperwork, and what your signature on a job means. <i>Status: written and stable.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-frozen"></span><div class="t"><b>CORE-M3 · How Work Gets Tracked & Talked About</b><small>Teaches: scanning jobs so the schedule updates itself, posting work updates the right way, and handing off between people and shifts so nothing falls through the cracks. <i>Status: finished and locked — releases to trainees as soon as the two small notices in Move #3 are posted.</i></small></div><span class="chip c-frozen">Locked</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>CORE-M4 · When Something Goes Wrong</b><small>Teaches: what to do the moment you find a bad or suspect part — stop, protect it, report it with the right words, and let Quality make the call. Never decide on your own, never hide it. <i>Status: written; every open question in it was answered by Quality this week.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-ready"></span><div class="t"><b>CORE-M6 · Spotting Fake Parts & Materials</b><small>Teaches: how counterfeit parts and materials sneak into supply chains and how to keep them out of ours. <i>Status: ready to write — the official procedure exists and the auditor confirmed there are existing materials to build from.</i></small></div><span class="chip c-ready">Ready</span></div>
+    </div>
+
+    <div class="card">
+      <div class="pillar">Department courses — written and standing</div>
+      <div class="row"><span class="dot d-frozen"></span><div class="t"><b>PCL-M1 · First Stop: Pre-Clean</b><small>Teaches: the first cleaning stage — sorting incoming parts correctly, running the pre-clean process, checking your own work, and knowing the exact moments to stop and ask instead of pushing on. <i>Status: finished and locked, built line-by-line from the master cleaning procedure. Releases after Quality answers two small questions at the sign-off meeting.</i></small></div><span class="chip c-frozen">Locked</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>INSP-M1 · How to Inspect Anything</b><small>Teaches: the inspection skills every department shares — how to actually look at a part, what counts as a defect, and what it means when you put your stamp or signature on something. <i>Status: written and stable; the stamp rules were double-checked against both our procedures and the aerospace standard itself.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>QLT-M1 · How Quality Handles Problem Parts</b><small>Teaches: what happens after a bad part is reported — who's allowed to decide its fate, where suspect parts get locked up, and the paper trail that follows every decision. <i>Status: written and stable; every fact verified against the official procedures.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>SCR-M1 · Reading a Customer's Order Correctly</b><small>Teaches: how to read a purchase order so nothing the customer requires gets missed before work starts — including the rule that no order is ever treated as "same as last time." <i>Status: written and reconciled word-for-word with the official contract review procedure.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>SHP-M1 · Receiving & Shipping Done Right</b><small>Teaches: checking customer parts in and out — so nothing enters untracked and nothing leaves wrong, undocumented, or unprotected. <i>Status: written; this is the course chosen for the official-pipeline test run (see The Two Gates).</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>PCK-M1 · Packaging: Protecting the Clean</b><small>Teaches: the day-one path for packaging staff — how to package cleaned parts so they arrive at the customer as clean as they left us. Everyone qualifies through it; nobody is waved through on seniority. <i>Status: written as the starter version; deeper material follows later.</i></small></div><span class="chip c-done">Written</span></div>
+      <div class="row"><span class="dot d-done"></span><div class="t"><b>SYS-M1 · The Proof Record</b><small>Not a course — the standard one-page record behind every checkout: who performed, what they did, who watched, what score, what date. The piece of paper that makes every qualification provable to an auditor or a customer. <i>Status: designed and ready.</i></small></div><span class="chip c-done">Written</span></div>
+    </div>
+
+    <div class="card">
+      <div class="pillar">Waiting — and exactly what each one waits for</div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>CLR-M3 · How the Lab Proves Parts Are Clean</b><small>Will teach: the lab's testing work — the measurements that turn "looks clean" into "proven clean." <i>Waiting for: the lab interview (Move #1). The interview guide is written; the knowledge currently lives in one person's head.</i></small></div><span class="chip c-amber">Needs interview</span></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>CLR-M4 · Recycling Our Cleaning Fluids</b><small>Will teach: how the solvent recovery operation works — a real process today that exists in no official document anywhere. <i>Waiting for: the same lab interview. This course starts as a blank page on purpose.</i></small></div><span class="chip c-amber">Needs interview</span></div>
+      <div class="row"><span class="dot d-blocked"></span><div class="t"><b>CLR-M1 · Working Inside the Cleanroom</b><small>Will teach: gowning up, conduct inside, and keeping the cleanroom clean. <i>Stuck because: the procedure it must teach from is still an unofficial 2023 draft — training can't cite a document that doesn't officially exist. Fix is on the Quality sign-off agenda.</i></small></div><span class="chip c-blocked">Stuck</span></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>SCR-M2 · Contract Review, the Deep End</b><small>Will teach: the harder order-review cases beyond the basics. <i>Waiting for: review of the basics course first; all source documents are confirmed and in hand.</i></small></div><span class="chip c-amber">Queued</span></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>QLT-M2 · Fixing Problems So They Stay Fixed</b><small>Will teach: root-cause work — how Quality turns one bad part into a permanent fix instead of a repeat. <i>Waiting for: its turn in the queue; sources confirmed, including a live log of real past problems to teach from.</i></small></div><span class="chip c-amber">Queued</span></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>LEAD-M3 · What a Lead Can Decide — and What They Can't</b><small>Will teach: the authority line for leads — which calls are theirs and which must go up. <i>Waiting for: the owner to define the rest of that line; the first piece is already anchored in the company Quality Manual (process changes belong to managers, not leads).</i></small></div><span class="chip c-amber">Needs a decision</span></div>
+    </div>
+  </section>
+
+  <!-- ===================== THE TWO GATES ===================== -->
+  <section id="gates">
+    <h2>The Two Gates</h2>
+    <div class="lede"><b>Only two things truly stand between "courses written" and "system running" — and neither is a writing task.</b> Everything else on this board is sequencing toward these.</div>
+    <div class="gate"><b>Enough qualified checkers on every shift</b><p>The rule that nobody signs off their own work only works if every shift has enough qualified people to do the checking. Before rollout, we count: how many verifiers exist, per shift, per department — and close any gap. The one-page Second-Shift Readiness Checklist (Move #8) is this gate's working face.</p></div>
+    <div class="gate"><b>One successful test run through the official pipeline</b><p>Before any training document becomes official quality documentation, we walk exactly one — the shipping course and its checklist — through the full conversion process, end to end. If the pipeline works on one, it works on all. No mass conversion until the test run passes.</p></div>
+  </section>
+
+  <!-- ===================== CLOSED ===================== -->
+  <section id="closed">
+    <h2>Closed — the receipts</h2>
+    <div class="lede">Decided and done. Folded away because the past doesn't need screen space — open a drawer when someone asks "wait, when did we settle that?"</div>
+    <details><summary>Eight questions only the Quality Manager could answer — all answered</summary><div class="inner"><li>Passing scores are set for every course, and the practical checkout must be passed — a good written test can't carry a failed hands-on.</li><li>The "instant-fail" list exists: a dozen mistakes so serious that making one fails the checkout and triggers retraining, no matter the rest of the score.</li><li>The exact words to use when reporting a suspect part — describe what you see, never declare a conclusion you can't prove.</li><li>The reporting chain for bad parts: the finder reports and protects the part; Quality owns the decision and the paperwork. Nobody on the floor decides a part's fate.</li><li>Who sits on the review board for problem parts, what decisions they may make, how the locked quarantine cage works, and when the customer must be told.</li><li>How inspection stamps are issued, tracked, and controlled.</li></div></details>
+    <details><summary>Open questions we chased down and closed</summary><div class="inner"><li>How the production schedule really updates: technicians scan the job's label and the board updates itself — a chat message is the exception, not the system.</li><li>Which QR code is real: the old time-tracking code is retired; the label code on every job is the live one. (The training was corrected the same day we learned this.)</li><li>The right person to interview for the lab's knowledge has been identified by name and role — the interview itself is Move #1.</li><li>How cleaning solvents are controlled — answered by the master cleaning procedure; one labeling question remains.</li></div></details>
+    <details><summary>Source documents read line-by-line and checked against the training</summary><div class="inner"><li>The official master list of quality documents — every document the training cites was confirmed current against it.</li><li>The two core quality procedures (bad-part handling; part identification and traceability) — verified word-for-word.</li><li>The master cleaning procedure — read in full; it settled how cleanliness limits, methods, and categories divide across documents, and gave us 16 ready-made entries for the lab's reference table.</li><li>The contract review procedure — matched against the order-reading course, line by line.</li><li>Last September's independent audit report — a perfect score (zero findings), plus a map of what the auditor <i>didn't</i> sample, which is exactly where the next audit will look.</li><li>The company Quality Manual — analyzed in full. It barely mentions training today; we drafted the paragraph that would anchor this program in it.</li><li>The aerospace standard itself (AS9100) — cross-checked clause by clause. Verdict: this program meets or exceeds everything the standard asks for. The knowledge-capture work isn't extra credit — the standard literally requires it.</li></div></details>
+    <details><summary>Mistakes the process caught — proof the rules work</summary><div class="inner"><li>We had the production-schedule update flowing the wrong direction — a floor conversation corrected it the same day.</li><li>We retired a QR code in training that's actually still in use — caught on the floor, fixed and verified the same day.</li><li>We claimed a question "closed" that was really only "source found" — walked it back to the honest status.</li><li>We cited the wrong procedure for retraining rules in six courses — found it during a document check and fixed all six within the hour.</li><li>We assumed no org chart existed — the audit report proved one does.</li><li><i>Why this drawer exists: the build's honesty isn't a slogan, it's a record. Every line here is a rule from "Rules of Play" doing its job.</i></li></div></details>
+  </section>
+
+  <!-- ===================== FINDINGS ===================== -->
+  <section id="findings">
+    <h2>Findings-in-Waiting</h2>
+    <div class="lede"><b>Paperwork problems we found before an auditor does.</b> September's audit was spotless — but it didn't sample the areas this build works in, and audits rotate. Each item below is cheap to fix now and awkward to explain later. All of them are on the Quality sign-off agenda.</div>
+    <div class="card">
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>Training cites a procedure that isn't on the official list</b><small>A work-instruction document (SP1250) is referenced in practice but missing from the master document index. Either it gets added officially, or training points at the documents that are.</small></div></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>Two different identities for the passivation procedure</b><small>The master list says one document number and revision; the copy in circulation says another. One answer needed before any passivation training is written.</small></div></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>The lab runs a residue test from a method with no official number</b><small>A borrowed industry method does real, controlled work daily but was never formally adopted. Number it, adopt it, or replace it — the lab interview will tell us which.</small></div></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>An outdated how-to guide is still findable by employees</b><small>A 2024 guide teaches a process we've since retired. Until it's marked as replaced, anyone who finds it learns the wrong way. (This is one of the two notices in Move #3.)</small></div></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>A customer-specific section was added to the master cleaning procedure without a revision bump</b><small>If that section is controlled separately, fine — but someone has to confirm it. One question for Quality.</small></div></div>
+      <div class="row"><span class="dot d-amber"></span><div class="t"><b>Housekeeping on the Quality Manual itself</b><small>Old copies scattered across personal drives; the official file stored in a format that resists checking; inconsistent page markings in a key plan; and one section — covering customer property, which is our entire business — is a single broken sentence. All fixable in one editing pass that's already planned.</small></div></div>
+    </div>
+  </section>
+
+  <!-- ===================== NOTES ===================== -->
+  <section id="notes">
+    <h2>Notes</h2>
+    <div class="lede">Persists with the board. Anything the next session — or the next player — should see, park it here.</div>
+    <textarea id="noteBox" placeholder="…"></textarea>
+    <p style="color:var(--faint);font-size:12px;margin-top:10px">How this board works: checkboxes and notes save automatically (timestamp bottom-right) with a file backup as fallback. Course statuses are a snapshot — check the date in the header, because a stale board lies confidently. This page is a working tool that points at the truth; the training documents themselves <i>are</i> the truth.</p>
+  </section>
+
+</div>
+
+<div class="bar"><div class="wrap">
+  <button onclick="exportState()">Save backup</button>
+  <button onclick="document.getElementById('importFile').click()">Load backup</button>
+  <input type="file" id="importFile" accept=".json" onchange="importState(event)">
+  <span class="status" id="saveStatus">autosave on</span>
+</div></div>
+
+<script>
+const KEY='qpc-board-2026-06-12';
+let state={checks:{},note:''};
+const statusEl=document.getElementById('saveStatus');
+
+function applyState(){
+  document.querySelectorAll('#moveList .row').forEach(r=>{
+    const k=r.dataset.k, cb=r.querySelector('input');
+    cb.checked=!!state.checks[k];
+    r.classList.toggle('checked',cb.checked);
+  });
+  document.getElementById('noteBox').value=state.note||'';
+  updateCount();
+}
+function updateCount(){
+  const rows=[...document.querySelectorAll('#moveList .row')];
+  const open=rows.filter(r=>!r.querySelector('input').checked).length;
+  document.getElementById('moveCount').textContent=open;
+}
+async function save(){
+  try{
+    if(window.storage){await window.storage.set(KEY,JSON.stringify(state));statusEl.textContent='saved '+new Date().toLocaleTimeString();}
+    else{statusEl.textContent='no autosave here — use Save backup';}
+  }catch(e){statusEl.textContent='autosave unavailable — use Save backup';}
+}
+async function load(){
+  try{
+    if(window.storage){const r=await window.storage.get(KEY); if(r&&r.value){state=JSON.parse(r.value);}}
+  }catch(e){/* first run or storage unavailable */}
+  applyState();
+}
+document.querySelectorAll('#moveList .row input').forEach(cb=>{
+  cb.addEventListener('change',e=>{
+    const row=e.target.closest('.row');
+    state.checks[row.dataset.k]=e.target.checked;
+    row.classList.toggle('checked',e.target.checked);
+    updateCount();save();
+  });
+});
+document.getElementById('noteBox').addEventListener('input',e=>{state.note=e.target.value;clearTimeout(window._nt);window._nt=setTimeout(save,600);});
+function exportState(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='qpc-board-state.json';a.click();
+}
+function importState(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{try{state=JSON.parse(rd.result);applyState();save();}catch(e){alert('Not a valid backup file');}};rd.readAsText(f);
+}
+load();
+</script>
+</body>
+</html>
